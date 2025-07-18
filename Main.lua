@@ -1,7 +1,8 @@
--- ⛔ Защита от античита — кастомный телепорт через TweenService
--- ✅ Используется Rayfield UI
--- ✅ Полный список Brainrot'ов
--- ✅ Задержка регулируется
+-- ⛔ Anti-Cheat Safe Teleport — TweenService
+-- ✅ Rayfield UI
+-- ✅ Grouped Brainrots by First Letter
+-- ✅ Delay Slider
+-- ✅ Auto Saving Enabled
 
 local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/source.lua"))()
 local TweenService = game:GetService("TweenService")
@@ -13,6 +14,8 @@ local root = character:WaitForChild("HumanoidRootPart")
 local defaultDelay = 10
 local selectedBrainrots = {}
 
+-- Brainrots grouped by first letter
+local brainrotGroups = {}
 local brainrots = {
    "Noobini Pizzanini", "Lirilì Larilà", "Tim Cheese", "Fluriflura", "Talpa Di Fero", "Svinina Bombardino",
    "Pipi Kiwi", "Trippi Troppi", "Tung Tung Tung Sahur", "Gangster Footera", "Bandito Bobritto", "Boneca Ambalabu",
@@ -28,21 +31,29 @@ local brainrots = {
    "Torrtuginni Dragonfrutini", "Pot Hotspot"
 }
 
+-- Group brainrots by first letter
+for _, name in ipairs(brainrots) do
+   local firstLetter = name:sub(1,1):upper()
+   if not brainrotGroups[firstLetter] then
+       brainrotGroups[firstLetter] = {}
+   end
+   table.insert(brainrotGroups[firstLetter], name)
+end
+
 -- UI
 local Window = Rayfield:CreateWindow({
    Name = "Steal a Brainrot Autofarm",
-   LoadingTitle = "Brainrot Assistant",
+   LoadingTitle = "Loading...",
    ConfigurationSaving = {
        Enabled = true,
-       FolderName = nil,
-       FileName = "BrainrotSettings"
+       FolderName = "BrainrotAutoFarm",
+       FileName = "AutoFarmConfig"
    },
    Discord = { Enabled = false }
 })
 
 local MainTab = Window:CreateTab("Main", 4483362458)
 
--- Time slider
 MainTab:CreateSlider({
    Name = "Delay between collections (seconds)",
    Range = {1, 60},
@@ -53,17 +64,23 @@ MainTab:CreateSlider({
    end
 })
 
--- Brainrot selector
-MainTab:CreateDropdown({
-   Name = "Select Brainrots to Farm",
-   Options = brainrots,
-   MultiSelection = true,
-   Callback = function(Selected)
-       selectedBrainrots = Selected
-   end
-})
+-- Dropdowns by letters
+for letter, list in pairs(brainrotGroups) do
+   MainTab:CreateDropdown({
+       Name = "Brainrots: " .. letter,
+       Options = list,
+       MultiSelection = true,
+       Callback = function(selected)
+           for _, v in ipairs(selected) do
+               if not table.find(selectedBrainrots, v) then
+                   table.insert(selectedBrainrots, v)
+               end
+           end
+       end
+   })
+end
 
--- Autofarm toggle
+-- Autofarm
 MainTab:CreateToggle({
    Name = "AutoFarm Enabled",
    CurrentValue = false,
@@ -77,16 +94,25 @@ MainTab:CreateToggle({
                for _, name in pairs(selectedBrainrots) do
                    for _, obj in pairs(workspace:GetDescendants()) do
                        if obj:IsA("Model") and obj.Name == name then
-                           local touchPart = obj:FindFirstChildWhichIsA("BasePart")
-                           if touchPart then
-                               -- Safe tween movement
-                               local tween = TweenService:Create(root, TweenInfo.new(1), {CFrame = touchPart.CFrame + Vector3.new(0, 2, 0)})
+                           local btn = nil
+                           for _, child in ipairs(obj:GetChildren()) do
+                               if child:IsA("Model") then
+                                   for _, p in ipairs(child:GetDescendants()) do
+                                       if p:IsA("BasePart") and p.BrickColor == BrickColor.Green() then
+                                           btn = p
+                                           break
+                                       end
+                                   end
+                               end
+                           end
+
+                           if btn then
+                               local tween = TweenService:Create(root, TweenInfo.new(1), {CFrame = btn.CFrame + Vector3.new(0,2,0)})
                                tween:Play()
                                tween.Completed:Wait()
 
-                               wait(0.5)
+                               task.wait(0.5)
 
-                               -- Return
                                local backTween = TweenService:Create(root, TweenInfo.new(1), {CFrame = CFrame.new(startPos)})
                                backTween:Play()
                                backTween.Completed:Wait()
