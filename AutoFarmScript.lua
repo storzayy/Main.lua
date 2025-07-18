@@ -1,9 +1,5 @@
--- ⛔ Anti-Cheat Safe Teleport — TweenService
--- ✅ Rayfield UI
--- ✅ Grouped Brainrots by First Letter
--- ✅ Delay Slider
--- ✅ Auto Saving Enabled
--- ✅ Auto-Updater Ready
+-- 🧠 Steal a Brainrot - AutoFarm v1.0.5
+-- ✅ Rayfield UI | ✅ Green Button Detection | ✅ AutoSave | ✅ Settings Tab
 
 local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/source.lua"))()
 local TweenService = game:GetService("TweenService")
@@ -12,11 +8,10 @@ local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local root = character:WaitForChild("HumanoidRootPart")
 
+local VERSION = "v1.0.5"
 local defaultDelay = 10
 local selectedBrainrots = {}
 
--- Brainrots grouped by first letter
-local brainrotGroups = {}
 local brainrots = {
    "Noobini Pizzanini", "Lirilì Larilà", "Tim Cheese", "Fluriflura", "Talpa Di Fero", "Svinina Bombardino",
    "Pipi Kiwi", "Trippi Troppi", "Tung Tung Tung Sahur", "Gangster Footera", "Bandito Bobritto", "Boneca Ambalabu",
@@ -32,17 +27,8 @@ local brainrots = {
    "Torrtuginni Dragonfrutini", "Pot Hotspot"
 }
 
-for _, name in ipairs(brainrots) do
-   local firstLetter = name:sub(1,1):upper()
-   if not brainrotGroups[firstLetter] then
-       brainrotGroups[firstLetter] = {}
-   end
-   table.insert(brainrotGroups[firstLetter], name)
-end
-
--- UI
 local Window = Rayfield:CreateWindow({
-   Name = "Steal a Brainrot Autofarm",
+   Name = "Steal a Brainrot AutoFarm",
    LoadingTitle = "Loading...",
    ConfigurationSaving = {
        Enabled = true,
@@ -52,6 +38,7 @@ local Window = Rayfield:CreateWindow({
    Discord = { Enabled = false }
 })
 
+-- 🧠 MAIN TAB
 local MainTab = Window:CreateTab("Main", 4483362458)
 
 MainTab:CreateSlider({
@@ -64,23 +51,15 @@ MainTab:CreateSlider({
    end
 })
 
--- Dropdowns by letters
-for letter, list in pairs(brainrotGroups) do
-   MainTab:CreateDropdown({
-       Name = "Brainrots: " .. letter,
-       Options = list,
-       MultiSelection = true,
-       Callback = function(selected)
-           for _, v in ipairs(selected) do
-               if not table.find(selectedBrainrots, v) then
-                   table.insert(selectedBrainrots, v)
-               end
-           end
-       end
-   })
-end
+MainTab:CreateDropdown({
+   Name = "Select Brainrots",
+   Options = brainrots,
+   MultiSelection = true,
+   Callback = function(selected)
+       selectedBrainrots = selected
+   end
+})
 
--- Autofarm
 MainTab:CreateToggle({
    Name = "AutoFarm Enabled",
    CurrentValue = false,
@@ -91,7 +70,7 @@ MainTab:CreateToggle({
            while enabled do
                local startPos = root.Position
 
-               for _, name in pairs(selectedBrainrots) do
+               for _, name in ipairs(selectedBrainrots) do
                    for _, obj in pairs(workspace:GetDescendants()) do
                        if obj:IsA("Model") and obj.Name == name then
                            local btn = nil
@@ -124,18 +103,18 @@ MainTab:CreateToggle({
                task.wait(defaultDelay)
            end
        end)
-
-       Rayfield:Notify({
-           Title = "AutoFarm Loaded",
-           Content = "Version: 1.0.0 | Auto-Updater Enabled",
-           Duration = 6,
-           Image = 4483362458,
-           Actions = {
-               Ignore = {
-                   Name = "Ok!",
-                   Callback = function() end
-               }
-           }
-       })
    end
+})
+
+-- ⚙️ SETTINGS TAB
+local SettingsTab = Window:CreateTab("Settings", 4483362458)
+
+SettingsTab:CreateParagraph({
+   Title = "AutoFarm Info",
+   Content = "Version: " .. VERSION .. "\nStatus: Loaded successfully\nGitHub: storzayy/Main.lua"
+})
+
+SettingsTab:CreateParagraph({
+   Title = "Future Settings",
+   Content = "- AutoUpdater: Enabled\n- UI Save: Enabled\n- Next: Custom Presets & Teleport Mode"
 })
