@@ -1,6 +1,6 @@
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
--- Анти-АФК
+-- Anti-AFK
 pcall(function()
     game:GetService("Players").LocalPlayer.Idled:Connect(function()
         game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
@@ -9,7 +9,7 @@ pcall(function()
     end)
 end)
 
--- Функция безопасного получения PlayerGui
+-- Get PlayerGui safely
 local function getPlayerGui()
     local player = game:GetService("Players").LocalPlayer
     return player:FindFirstChild("PlayerGui") or player:WaitForChild("PlayerGui")
@@ -22,32 +22,25 @@ local Window = Rayfield:CreateWindow({
 	LoadingSubtitle = "Made with ❤️",
 	ConfigurationSaving = {
 		Enabled = true,
-		FolderName = "BrainrotAutoFarm", -- Измени по желанию
+		FolderName = "BrainrotAutoFarm",
 		FileName = "AutoFarmConfig"
 	},
-        Discord = {
-           Enabled = false,
-           Invite = "", 
-           RememberJoins = true
-        },
-        KeySystem = false,
+    Discord = {
+        Enabled = false,
+        Invite = "",
+        RememberJoins = true
+    },
+    KeySystem = false,
 })
 
--- Переменные
-local TeleportService = game:GetService("TweenService")
+-- Services and player setup
+local TweenService = game:GetService("TweenService")
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 local selectedBrainrot = nil
 
--- Телепортация к brainrot
-local function safeTeleport(position)
-	local tween = TeleportService:Create(humanoidRootPart, TweenInfo.new(1), {CFrame = CFrame.new(position)})
-	tween:Play()
-	tween.Completed:Wait()
-end
-
--- Пример списка brainrots (замени на свой список)
+-- Brainrots list (update if needed)
 local brainrots = {
 	"Noobini Pizzanini", "Cocofanto Elefanto", "Girafa Celestre",
 	"Tralalero Tralala", "Matteo", "Odin Din Din Dun",
@@ -55,20 +48,31 @@ local brainrots = {
 	"La Vacca Saturno Saturnita", "Graipus Medussi", "Garama and Madundung"
 }
 
--- Dropdown с brainrots
-local Dropdown = Window:CreateDropdown({
-	Name = "Выбрать Brainrot для телепорта",
+-- Safe teleport function
+local function safeTeleport(position)
+	local tween = TweenService:Create(humanoidRootPart, TweenInfo.new(1), {CFrame = CFrame.new(position)})
+	tween:Play()
+	tween.Completed:Wait()
+end
+
+-- TABS
+local farmingTab = Window:CreateTab("Autofarm", 4483362458)
+local teleportTab = Window:CreateTab("Teleport", 4483362458)
+local miscTab = Window:CreateTab("Misc", 4483362458)
+
+-- Brainrot Dropdown + Teleport button
+teleportTab:CreateDropdown({
+	Name = "Select Brainrot",
 	Options = brainrots,
 	CurrentOption = "",
 	Flag = "BrainrotDropdown",
-	Callback = function(Option)
-		selectedBrainrot = Option
+	Callback = function(option)
+		selectedBrainrot = option
 	end,
 })
 
--- Кнопка телепорта
-Window:CreateButton({
-	Name = "Телепорт к выбранному Brainrot",
+teleportTab:CreateButton({
+	Name = "Teleport to selected Brainrot",
 	Callback = function()
 		if selectedBrainrot then
 			for _, v in pairs(workspace:GetDescendants()) do
@@ -81,7 +85,7 @@ Window:CreateButton({
 	end,
 })
 
--- Автофарм монет с тайла
+-- Coin collection logic
 local function collectCoins()
 	local base = player:FindFirstChild("SpawnLocation")
 	if not base then return end
@@ -101,9 +105,9 @@ local function collectCoins()
 	end
 end
 
--- Тоггл автосбора монет
-Window:CreateToggle({
-	Name = "Авто сбор монет",
+-- Auto collect toggle
+farmingTab:CreateToggle({
+	Name = "Auto Collect Coins",
 	CurrentValue = false,
 	Flag = "AutoCollect",
 	Callback = function(state)
@@ -113,4 +117,10 @@ Window:CreateToggle({
 			wait(2)
 		end
 	end,
+})
+
+-- Anti-AFK toggle (visual)
+miscTab:CreateParagraph({
+	Title = "Anti-AFK",
+	Content = "Anti-AFK is enabled automatically to keep you online."
 })
