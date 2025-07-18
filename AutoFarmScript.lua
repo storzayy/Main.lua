@@ -1,147 +1,157 @@
--- AutoFarm Script | by storzayy | Made with ❤️
+-- AutoFarmScript.lua
+-- Created by storzayy ❤️
 
--- Anti AFK
+-- Anti‑AFK
 pcall(function()
-	local VirtualUser = game:GetService("VirtualUser")
-	game:GetService("Players").LocalPlayer.Idled:Connect(function()
-		VirtualUser:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
-		task.wait(1)
-		VirtualUser:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
-	end)
+    local vu = game:GetService("VirtualUser")
+    game:GetService("Players").LocalPlayer.Idled:Connect(function()
+        vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        task.wait(1)
+        vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    end)
 end)
 
--- Rayfield UI Setup
-local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/UI-Interface/CustomFIeld/main/RayField.lua'))()
+-- Load Rayfield UI
+local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/UI-Interface/CustomFIeld/main/RayField.lua"))()
 
+-- Initial loading notification
+Rayfield:Notify({
+    Title = "Loading...",
+    Content = "Made with ❤️ by storzayy",
+    Duration = 5,
+    Image = nil
+})
+
+-- Safely get player name
+local playerName = game.Players.LocalPlayer and game.Players.LocalPlayer.Name or "Player"
+
+-- Create main UI window
 local Window = Rayfield:CreateWindow({
-	Name = "Steal a Brainrot | by storzayy",
-	LoadingTitle = "AutoFarm Loading...",
-	LoadingSubtitle = "Made with ❤️",
-	ConfigurationSaving = {
-		Enabled = true,
-		FolderName = "BrainrotFarmConfig",
-		FileName = "Config"
-	},
-	Discord = {
-		Enabled = false,
-	},
-	KeySystem = false,
+    Name = "Steal a Brainrot Autofarm | by storzayy - v1.0.0 | " .. playerName,
+    LoadingTitle = "Brainrot AutoFarm",
+    LoadingSubtitle = "Made with ❤️ by storzayy",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "BrainrotFarmConfig",
+        FileName = "AutoFarmSettings"
+    },
+    Discord = { Enabled = false },
+    KeySystem = false
 })
 
 -- Variables
-local TeleportService = game:GetService("TweenService")
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local HRP = Character:WaitForChild("HumanoidRootPart")
-local Workspace = game:GetService("Workspace")
-local Base = tostring(LocalPlayer.SpawnLocation.Parent.Name)
-local Collected = false
-local AutoBuyEnabled = false
-local AutoCollectEnabled = false
-local AutoTeleportEnabled = false
+
+local AutoTeleport = false
+local AutoBuy = false
+local AutoCollect = false
 local SelectedBrainrot = nil
 
--- Brainrots
-local Brainrots = {
-	"Noobini Pizzanini", "Cocofanto Elefanto", "Girafa Celestre", "Gattatino Nyanino", "Matteo",
-	"Tralalero Tralala", "Odin Din Din Dun", "Statutino Libertino", "Trenostruzzo Turbo 3000",
-	"La Vacca Saturno Saturnita", "Chimpanzini Spiderini", "Los Tralaleritos", "Las Tralaleritas",
-	"Graipus Medussi", "La Grande Combinasion", "Garama and Madundung",
-	-- (Include all others here if needed)
+-- Brainrot lists
+local RareBrainrots = {
+    ["Noobini Pizzanini"] = true, ["Cocofanto Elefanto"] = true, ["Girafa Celestre"] = true,
+    ["Gattatino Nyanino"] = true, ["Matteo"] = true, ["Tralalero Tralala"] = true,
+    ["Odin Din Din Dun"] = true, ["Statutino Libertino"] = true, ["Trenostruzzo Turbo 3000"] = true,
+    ["La Vacca Saturno Saturnita"] = true, ["Chimpanzini Spiderini"] = true,
+    ["Los Tralaleritos"] = true, ["Las Tralaleritas"] = true, ["Graipus Medussi"] = true,
+    ["La Grande Combinasion"] = true, ["Garama and Madundung"] = true
 }
 
--- Teleport Function
-local function safeTeleport(position)
-	local tween = TeleportService:Create(HRP, TweenInfo.new(1), {CFrame = CFrame.new(position)})
-	tween:Play()
-	tween.Completed:Wait()
+local AllBrainrots = {
+    "Noobini Pizzanini", "Cocofanto Elefanto", "Girafa Celestre", "Gattatino Nyanino", "Matteo",
+    "Tralalero Tralala", "Odin Din Din Dun", "Statutino Libertino", "Trenostruzzo Turbo 3000",
+    "La Vacca Saturno Saturnita", "Chimpanzini Spiderini", "Los Tralaleritos", "Las Tralaleritas",
+    "Graipus Medussi", "La Grande Combinasion", "Garama and Madundung"
+}
+
+-- Safe tween teleport function
+local function safeTeleport(posCFrame)
+    TweenService:Create(HRP, TweenInfo.new(1, Enum.EasingStyle.Linear), {CFrame = posCFrame}):Play()
 end
 
--- Auto Buy Logic
+-- Auto‑teleport loop
 task.spawn(function()
-	while true do
-		if AutoBuyEnabled then
-			for _, obj in pairs(Workspace.Brainrots:GetChildren()) do
-				if table.find(Brainrots, obj.Name) and obj:FindFirstChild("main") then
-					safeTeleport(obj.main.Position + Vector3.new(0, 4, 0))
-					fireproximityprompt(obj.main:FindFirstChildOfClass("ProximityPrompt"))
-					task.wait(0.5)
-				end
-			end
-		end
-		task.wait(1)
-	end
+    while task.wait(1) do
+        if AutoTeleport and SelectedBrainrot then
+            for _, obj in ipairs(Workspace:GetDescendants()) do
+                if obj:IsA("Model") and obj.Name == SelectedBrainrot then
+                    local root = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
+                    if root then safeTeleport(root.CFrame + Vector3.new(0,5,0)) end
+                end
+            end
+        end
+    end
 end)
 
--- Auto Collect Cash
+-- Auto‑buy rare brainrots loop
 task.spawn(function()
-	while true do
-		if AutoCollectEnabled then
-			for _, hitbox in ipairs(Workspace:FindFirstChild("AnimalPodiums")[Base]:FindFirstChild("base"):FindFirstChild("claim"):GetDescendants()) do
-				if hitbox.Name == "main" and hitbox:IsA("BasePart") then
-					safeTeleport(hitbox.Position + Vector3.new(0, 4, 0))
-					task.wait(0.5)
-				end
-			end
-		end
-		task.wait(5)
-	end
+    while task.wait(2) do
+        if AutoBuy then
+            for _, obj in ipairs(Workspace:GetDescendants()) do
+                if obj:IsA("Model") and RareBrainrots[obj.Name] then
+                    local root = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
+                    if root then
+                        safeTeleport(root.CFrame + Vector3.new(0,5,0))
+                        task.wait(1)
+                        -- fire buy if prompt exists
+                        local prompt = root:FindFirstChildOfClass("ProximityPrompt")
+                        if prompt then prompt:InputHoldBegin() task.wait(0.5) prompt:InputHoldEnd() end
+                    end
+                end
+            end
+        end
+    end
 end)
 
--- Auto Teleport to Selected Brainrot
+-- Auto‑collect cash loop
 task.spawn(function()
-	while true do
-		if AutoTeleportEnabled and SelectedBrainrot then
-			for _, obj in pairs(Workspace.Brainrots:GetChildren()) do
-				if obj.Name == SelectedBrainrot and obj:FindFirstChild("main") then
-					safeTeleport(obj.main.Position + Vector3.new(0, 4, 0))
-				end
-			end
-		end
-		task.wait(2)
-	end
+    while task.wait(3) do
+        if AutoCollect then
+            local baseNum = LocalPlayer:FindFirstChild("SpawnLocation") and LocalPlayer.SpawnLocation.Value or 1
+            local path = Workspace:FindFirstChild("AnimalPodiums")
+            if path and path:FindFirstChild(tostring(baseNum)) then
+                local main = path[tostring(baseNum)]:FindFirstChild("base"):FindFirstChild("claim"):FindFirstChild("hitbox"):FindFirstChild("main")
+                if main and main:IsA("BasePart") then
+                    safeTeleport(main.CFrame + Vector3.new(0,5,0))
+                    firetouchinterest(HRP, main, 0)
+                    firetouchinterest(HRP, main, 1)
+                end
+            end
+        end
+    end
 end)
 
--- UI Tabs and Toggles
+-- UI elements
 local MainTab = Window:CreateTab("Main", 4483362458)
-MainTab:CreateToggle({
-	Name = "Auto Buy Rare Brainrots",
-	CurrentValue = false,
-	Callback = function(Value)
-		AutoBuyEnabled = Value
-	end,
-})
-
-MainTab:CreateToggle({
-	Name = "Auto Collect Cash/Money",
-	CurrentValue = false,
-	Callback = function(Value)
-		AutoCollectEnabled = Value
-	end,
-})
-
-MainTab:CreateToggle({
-	Name = "Auto Teleport to Brainrot",
-	CurrentValue = false,
-	Callback = function(Value)
-		AutoTeleportEnabled = Value
-	end,
-})
-
 MainTab:CreateDropdown({
-	Name = "Select Brainrot to Teleport",
-	Options = Brainrots,
-	CurrentOption = "",
-	Callback = function(Value)
-		SelectedBrainrot = Value
-	end,
+    Name = "Select Brainrot",
+    Options = AllBrainrots,
+    CurrentOption = "",
+    Callback = function(v) SelectedBrainrot = v end
+})
+MainTab:CreateToggle({
+    Name = "Auto Teleport to Selected",
+    CurrentValue = false,
+    Callback = function(v) AutoTeleport = v end
+})
+MainTab:CreateToggle({
+    Name = "Auto Buy Rare Brainrots",
+    CurrentValue = false,
+    Callback = function(v) AutoBuy = v end
+})
+MainTab:CreateToggle({
+    Name = "Auto Collect Cash/Money",
+    CurrentValue = false,
+    Callback = function(v) AutoCollect = v end
+})
+MainTab:CreateParagraph({
+    Title = "Made with ❤️",
+    Content = "by storzayy"
 })
 
--- Footer
-Rayfield:Notify({
-	Title = "Script Loaded",
-	Content = "Interface by storzayy | Made with ❤️",
-	Duration = 6,
-	Image = 4483362458,
-})
+Rayfield:LoadConfiguration()
