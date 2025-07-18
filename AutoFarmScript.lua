@@ -1,5 +1,9 @@
--- 🧠 Steal a Brainrot - AutoFarm v1.0.5
--- ✅ Rayfield UI | ✅ Green Button Detection | ✅ AutoSave | ✅ Settings Tab
+-- ✅ Steal a Brainrot Autofarm v1.0.5
+-- ✅ Anti-Cheat Safe Teleport (TweenService)
+-- ✅ Rayfield UI with Theme and Font Customization
+-- ✅ Brainrots Grouped in One Dropdown
+-- ✅ Auto Saving Enabled
+-- ✅ Version Display & Changelog
 
 local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/source.lua"))()
 local TweenService = game:GetService("TweenService")
@@ -8,10 +12,17 @@ local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local root = character:WaitForChild("HumanoidRootPart")
 
-local VERSION = "v1.0.5"
 local defaultDelay = 10
 local selectedBrainrots = {}
+local version = "v1.0.5"
+local changelog = {
+   "- AutoFarm feature",
+   "- Safe Teleport (TweenService)",
+   "- Grouped Brainrots",
+   "- Settings Tab with version, changelog, theme and font options"
+}
 
+-- All brainrots in one dropdown
 local brainrots = {
    "Noobini Pizzanini", "Lirilì Larilà", "Tim Cheese", "Fluriflura", "Talpa Di Fero", "Svinina Bombardino",
    "Pipi Kiwi", "Trippi Troppi", "Tung Tung Tung Sahur", "Gangster Footera", "Bandito Bobritto", "Boneca Ambalabu",
@@ -27,9 +38,10 @@ local brainrots = {
    "Torrtuginni Dragonfrutini", "Pot Hotspot"
 }
 
+-- Window
 local Window = Rayfield:CreateWindow({
-   Name = "Steal a Brainrot AutoFarm",
-   LoadingTitle = "Loading...",
+   Name = "Steal a Brainrot Autofarm",
+   LoadingTitle = "Loading AutoFarm...",
    ConfigurationSaving = {
        Enabled = true,
        FolderName = "BrainrotAutoFarm",
@@ -38,9 +50,21 @@ local Window = Rayfield:CreateWindow({
    Discord = { Enabled = false }
 })
 
--- 🧠 MAIN TAB
-local MainTab = Window:CreateTab("Main", 4483362458)
+-- Tabs
+local MainTab = Window:CreateTab("AutoFarm", 4483362458)
+local SettingsTab = Window:CreateTab("Settings", 4483362458)
 
+-- Dropdown
+MainTab:CreateDropdown({
+   Name = "Select Brainrots",
+   Options = brainrots,
+   MultiSelection = true,
+   Callback = function(selected)
+       selectedBrainrots = selected
+   end
+})
+
+-- Delay slider
 MainTab:CreateSlider({
    Name = "Delay between collections (seconds)",
    Range = {1, 60},
@@ -51,26 +75,16 @@ MainTab:CreateSlider({
    end
 })
 
-MainTab:CreateDropdown({
-   Name = "Select Brainrots",
-   Options = brainrots,
-   MultiSelection = true,
-   Callback = function(selected)
-       selectedBrainrots = selected
-   end
-})
-
+-- Autofarm toggle
 MainTab:CreateToggle({
-   Name = "AutoFarm Enabled",
+   Name = "Enable AutoFarm",
    CurrentValue = false,
    Callback = function(enabled)
        if not enabled then return end
-
        task.spawn(function()
            while enabled do
                local startPos = root.Position
-
-               for _, name in ipairs(selectedBrainrots) do
+               for _, name in pairs(selectedBrainrots) do
                    for _, obj in pairs(workspace:GetDescendants()) do
                        if obj:IsA("Model") and obj.Name == name then
                            local btn = nil
@@ -84,14 +98,11 @@ MainTab:CreateToggle({
                                    end
                                end
                            end
-
                            if btn then
                                local tween = TweenService:Create(root, TweenInfo.new(1), {CFrame = btn.CFrame + Vector3.new(0,2,0)})
                                tween:Play()
                                tween.Completed:Wait()
-
                                task.wait(0.5)
-
                                local backTween = TweenService:Create(root, TweenInfo.new(1), {CFrame = CFrame.new(startPos)})
                                backTween:Play()
                                backTween.Completed:Wait()
@@ -99,22 +110,29 @@ MainTab:CreateToggle({
                        end
                    end
                end
-
                task.wait(defaultDelay)
            end
        end)
    end
 })
 
--- ⚙️ SETTINGS TAB
-local SettingsTab = Window:CreateTab("Settings", 4483362458)
+-- Version + changelog
+SettingsTab:CreateParagraph({Title = "Script Version", Content = version})
+SettingsTab:CreateParagraph({Title = "Changelog", Content = table.concat(changelog, "\n")})
 
-SettingsTab:CreateParagraph({
-   Title = "AutoFarm Info",
-   Content = "Version: " .. VERSION .. "\nStatus: Loaded successfully\nGitHub: storzayy/Main.lua"
+-- Theme settings
+SettingsTab:CreateColorPicker({
+   Name = "UI Theme Color",
+   Color = Color3.fromRGB(64, 128, 255),
+   Callback = function(color)
+       Rayfield:SetTheme({Accent = color})
+   end
 })
 
-SettingsTab:CreateParagraph({
-   Title = "Future Settings",
-   Content = "- AutoUpdater: Enabled\n- UI Save: Enabled\n- Next: Custom Presets & Teleport Mode"
+SettingsTab:CreateDropdown({
+   Name = "UI Font",
+   Options = {"Gotham", "Code", "Legacy", "UI"},
+   Callback = function(font)
+       Rayfield:SetTheme({Font = font})
+   end
 })
