@@ -131,9 +131,4 @@ SettingsTab:CreateParagraph({
     Title = "Changelog",
     Content = "- ✅ Grouped Brainrots\\n- ✅ TweenService Safe Teleport\\n- ✅ Delay Slider\\n- ✅ Loadstring Ready\\n- ✅ Version & UI Info"
 })
-'''
 
-with open("/mnt/data/AutoFarmScript_Final.lua", "w") as file:
-    file.write(final_script)
-
-"/mnt/data/AutoFarmScript_Final.lua"
