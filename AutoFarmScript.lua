@@ -15,24 +15,13 @@ end)
 local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/UI-Interface/CustomFIeld/main/RayField.lua"))()
 
 -- Initial loading notification
-Rayfield:Notify({
-    Title = "Loading...",
-    Content = "Made with ❤️ by storzayy",
-    Duration = 5,
-    Image = nil
-})
-
--- Safely get player name
-local playerName = game.Players.LocalPlayer and game.Players.LocalPlayer.Name or "Player"
-
--- Create main UI window
 local Window = Rayfield:CreateWindow({
-    Name = "Steal a Brainrot Autofarm | by storzayy - v1.0.0 | " .. playerName,
-    LoadingTitle = "Brainrot AutoFarm",
+    Name = "Steal a Brainrot Autofarm",
+    LoadingTitle = "Loading Interface",
     LoadingSubtitle = "Made with ❤️ by storzayy",
     ConfigurationSaving = {
         Enabled = true,
-        FolderName = "BrainrotFarmConfig",
+        FolderName = "BrainrotConfig",
         FileName = "AutoFarmSettings"
     },
     Discord = { Enabled = false },
