@@ -3,6 +3,7 @@
 -- ✅ Grouped Brainrots by First Letter
 -- ✅ Delay Slider
 -- ✅ Auto Saving Enabled
+-- ✅ Auto-Updater Ready
 
 local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/source.lua"))()
 local TweenService = game:GetService("TweenService")
@@ -31,7 +32,6 @@ local brainrots = {
    "Torrtuginni Dragonfrutini", "Pot Hotspot"
 }
 
--- Group brainrots by first letter
 for _, name in ipairs(brainrots) do
    local firstLetter = name:sub(1,1):upper()
    if not brainrotGroups[firstLetter] then
@@ -124,5 +124,18 @@ MainTab:CreateToggle({
                task.wait(defaultDelay)
            end
        end)
+
+       Rayfield:Notify({
+           Title = "AutoFarm Loaded",
+           Content = "Version: 1.0.0 | Auto-Updater Enabled",
+           Duration = 6,
+           Image = 4483362458,
+           Actions = {
+               Ignore = {
+                   Name = "Ok!",
+                   Callback = function() end
+               }
+           }
+       })
    end
 })
