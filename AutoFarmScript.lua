@@ -19,7 +19,7 @@ end
 local Window = Rayfield:CreateWindow({
 	Name = "Steal a Brainrot - Autofarm | by storzayy",
 	LoadingTitle = "Steal a Brainrot",
-	LoadingSubtitle = "Made with ❤️",
+	LoadingSubtitle = "Made by storzayy",
 	ConfigurationSaving = {
 		Enabled = true,
 		FolderName = "BrainrotAutoFarm",
